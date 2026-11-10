@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "id": "akash.sing-with-omarchy",
+  "name": "Sing with Omarchy",
+  "version": "0.1.0",
+  "author": "Akash A",
+  "license": "MIT",
+  "description": "Keep the words close. A synchronized lyrics reader for your desktop.",
+  "kinds": ["service", "bar-widget"],
+  "entryPoints": {"service": "Session.qml", "barWidget": "Widget.qml"},
+  "barWidget": {
+    "displayName": "Sing with Omarchy",
+    "category": "Media",
+    "allowMultiple": false,
+    "defaultSection": "right",
+    "defaults": {},
+    "schema": []
+  }
+}
