@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "akash.sing-with-omarchy",
   "name": "Sing with Omarchy",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "author": "Akash A",
   "license": "MIT",
   "description": "Keep the words close. A synchronized lyrics reader for your desktop.",

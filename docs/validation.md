@@ -4,17 +4,21 @@ Initial implementation: 16 November 2026. Commit dates record the actual work.
 
 ## Verified locally
 
-- 14 Python tests: LRC parsing, simultaneous cues, Unicode, metadata matching,
+- 25 Python tests: LRC parsing, simultaneous cues, Unicode, metadata matching,
   recording mismatches, provider fallback, instrumental tracks, network failures,
-  rate limiting, URL encoding, input bounds, and redirect refusal.
+  rate limiting, URL encoding, input bounds, and redirect refusal. Additional
+  cases cover gzip expansion, excessive cues, private stdin with actual process
+  argument inspection, bounded supervisor output, and hard process deadlines.
 - Qt Quick tests: cue boundaries, backward seeking, player selection, time
   formatting, reader buttons, and rendering at 440×650 and 360×430.
-- Six Quickshell session assertions: stale replies, malformed output, cooldowns,
-  and seek-dependent highlighting.
+- Twelve Quickshell session assertions: stale replies, malformed output,
+  cooldowns, seek-dependent highlighting, reader registration, focused-monitor
+  selection, global close, and removal of readers.
+- QML boundary tests cover malformed result shapes and late/replaced services.
 - A real Python subprocess with synthetic data: switching tracks during lookup
   ignores the old result and displays the new one.
-- Omarchy manifest validation and a component-load check using the installed
-  `qs.Ui` and `qs.Commons` modules in a temporary harness.
+- Omarchy manifest validation and widget startup/replacement/teardown checks
+  using the installed `qs.Ui` and `qs.Commons` modules in a temporary harness.
 - The full and compact reader screenshots were visually inspected.
 
 ## Still requires a desktop session

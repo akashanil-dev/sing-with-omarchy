@@ -1,17 +1,32 @@
 import QtQuick
 import Quickshell
 import qs.Ui as Ui
-import qs.Commons as Commons
 
 Ui.Panel {
     id: widget
     property var shell: null
     property var manifest: null
     property string omarchyPath: ""
-    readonly property var session: shell ? shell.serviceFor("akash.sing-with-omarchy") : null
-    ipcTarget: "akash.sing-with-omarchy"
+    readonly property var session: serviceLink.service
+    property var registeredSession: null
+    readonly property string screenName: widget.QsWindow.window && widget.QsWindow.window.screen ? widget.QsWindow.window.screen.name : ""
+    readonly property bool readerVisible: opened || detached.visible
+    manageIpc: false
     implicitWidth: 30
     implicitHeight: 30
+
+    ServiceLink { id: serviceLink; host: widget.shell; fallbackHost: widget.bar ? widget.bar.shell : null }
+    onSessionChanged: {
+        if (registeredSession) registeredSession.detachView(widget);
+        registeredSession = session;
+        if (session) session.attachView(widget);
+    }
+    Component.onDestruction: if (registeredSession) registeredSession.detachView(widget)
+    function presentReader() {
+        if (detached.visible) detached.minimized = false;
+        else widget.open();
+    }
+    function dismissReaders() { widget.close(); detached.visible = false; }
 
     Text {
         anchors.centerIn: parent
@@ -22,11 +37,11 @@ Ui.Panel {
     MouseArea {
         anchors.fill: parent
         cursorShape: Qt.PointingHandCursor
-        onClicked: widget.toggle()
+        onClicked: widget.readerVisible ? widget.dismissReaders() : widget.presentReader()
     }
     Accessible.role: Accessible.Button
     Accessible.name: "Sing with Omarchy"
-    Accessible.onPressAction: toggle()
+    Accessible.onPressAction: widget.readerVisible ? widget.dismissReaders() : widget.presentReader()
 
     Ui.PopupCard {
         anchorItem: widget

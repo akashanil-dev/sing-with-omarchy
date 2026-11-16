@@ -1,7 +1,9 @@
 import QtQuick
 import Quickshell.Io
 import Quickshell.Services.Mpris
+import Quickshell.Hyprland
 import "Timeline.js" as Timeline
+import "Protocol.js" as Protocol
 
 Item {
     id: session
@@ -9,6 +11,7 @@ Item {
     property var manifest: null
     property string omarchyPath: ""
     property string helperPath: decodeURIComponent(Qt.resolvedUrl("backend/lyrics.py").toString().replace(/^file:\/\//, ""))
+    readonly property string supervisorPath: decodeURIComponent(Qt.resolvedUrl("backend/worker.py").toString().replace(/^file:\/\//, ""))
     property bool demo: false
     property var players: Mpris.players.values
     property string preferredPlayer: ""
@@ -30,8 +33,42 @@ Item {
     property string jobKey: ""
     property string requestedKey: ""
     property bool jobActive: false
+    property string jobInput: ""
+    property int requestGeneration: 0
+    property int jobGeneration: 0
     property double retryAt: 0
-    property int retrySeconds: 0
+    property double retrySeconds: 0
+    property var views: []
+    readonly property bool panelOpen: views.some(view => view.readerVisible)
+
+    function attachView(view) {
+        if (views.indexOf(view) < 0) views = views.concat([view]);
+    }
+    function detachView(view) { views = views.filter(item => item !== view); }
+    function hideReaders() { views.slice().forEach(view => view.dismissReaders()); }
+    function showReader(screenName) {
+        var chosen = views.find(view => view.screenName === screenName) || views[0];
+        if (!chosen) return false;
+        // Close other readers before opening so host popup coordination cannot undo the selection.
+        views.filter(view => view !== chosen).forEach(view => view.dismissReaders());
+        chosen.presentReader();
+        return true;
+    }
+    function focusedScreen() { return Hyprland.focusedMonitor ? Hyprland.focusedMonitor.name : ""; }
+
+    IpcHandler {
+        target: "akash.sing-with-omarchy"
+        function show(): string { return session.showReader(session.focusedScreen()) ? "ok" : "unavailable"; }
+        function open(): string { return show(); }
+        function hide(): string { session.hideReaders(); return "ok"; }
+        function close(): string { return hide(); }
+        function toggle(): string {
+            if (session.panelOpen) { session.hideReaders(); return "ok"; }
+            return show();
+        }
+        function status(): string { return JSON.stringify({open: session.panelOpen, views: session.views.length, state: session.result.state}); }
+        function refresh(): string { session.refresh(); return "ok"; }
+    }
 
     function refresh() {
         if (demo) {
@@ -43,6 +80,7 @@ Item {
             return;
         }
         if (!player || retrySeconds > 0) return;
+        requestGeneration++;
         delete cache[trackKey];
         requestedKey = trackKey;
         result = {state: "loading", lines: []};
@@ -50,6 +88,7 @@ Item {
     }
 
     function changedTrack() {
+        requestGeneration++;
         offset = 0;
         following = true;
         position = 0;
@@ -71,29 +110,34 @@ Item {
             result = {state: "error", lines: [], message: "Provider is busy. Try again after the countdown."};
             return;
         }
+        try { jobInput = Protocol.trackInput(player, duration); }
+        catch (error) {
+            requestedKey = "";
+            result = {state: "error", lines: [], message: "The player supplied invalid or oversized track metadata."};
+            return;
+        }
         jobKey = requestedKey;
+        jobGeneration = requestGeneration;
         requestedKey = "";
+        worker.command = ["/usr/bin/python3", supervisorPath, helperPath];
         jobActive = true;
-        worker.command = ["/usr/bin/python3", helperPath,
-            JSON.stringify({title: player.trackTitle, artist: player.trackArtist, album: player.trackAlbum, duration: duration})];
         worker.running = true;
         deadline.restart();
     }
 
     function acceptOutput(text) {
         try {
-            const answer = JSON.parse(text);
-            if (!Array.isArray(answer.lines) || !answer.state) throw new Error("Invalid result");
+            const answer = Protocol.response(text);
             if (answer.retryAfter) retryAt = Date.now() + answer.retryAfter * 1000;
-            if (jobKey !== trackKey) return;
+            if (jobKey !== trackKey || jobGeneration !== requestGeneration) return;
             result = answer;
             if (answer.state === "ready" || answer.state === "instrumental") {
                 cache[jobKey] = answer;
-                cacheOrder.push(jobKey);
+                cacheOrder = cacheOrder.filter(key => key !== jobKey).concat([jobKey]);
                 if (cacheOrder.length > 20) delete cache[cacheOrder.shift()];
             }
         } catch (error) {
-            if (jobKey === trackKey) result = {state: "error", lines: [], message: "The lyrics helper returned an invalid response."};
+            if (jobKey === trackKey && jobGeneration === requestGeneration) result = {state: "error", lines: [], message: "The lyrics helper returned an invalid response."};
         }
     }
 
@@ -113,20 +157,23 @@ Item {
         }
     }
     Timer {
-        id: deadline; interval: 22000
+        id: deadline; interval: 25000
         onTriggered: {
             worker.running = false;
-            if (session.jobKey === session.trackKey)
+            session.jobActive = false;
+            if (session.jobKey === session.trackKey && session.jobGeneration === session.requestGeneration)
                 session.result = {state: "error", lines: [], message: "The request timed out. Try again."};
         }
     }
     Process {
         id: worker
+        stdinEnabled: true
+        onStarted: { write(session.jobInput + "\n"); session.jobInput = ""; }
         stdout: StdioCollector { onStreamFinished: session.acceptOutput(text) }
         onExited: (exitCode, exitStatus) => {
             deadline.stop();
             session.jobActive = false;
-            if (session.jobKey === session.trackKey && session.result.state === "loading")
+            if (session.jobKey === session.trackKey && session.jobGeneration === session.requestGeneration && session.result.state === "loading")
                 session.result = {state: "error", lines: [], message: "The lyrics helper could not finish. Try again."};
             if (session.requestedKey) launchDelay.restart();
         }

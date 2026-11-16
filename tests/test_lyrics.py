@@ -48,6 +48,12 @@ class LyricsTests(unittest.TestCase):
         self.assertTrue(result["synced"])
         self.assertEqual(len(self.urls), 2)
 
+    def test_missing_optional_album_still_matches(self):
+        result = self.lookup([self.record | {"albumName": None}])
+        self.assertEqual(result["state"], "ready")
+        self.assertTrue(result["synced"])
+        self.assertEqual(len(self.urls), 1)
+
     def test_plain_provider_fallback(self):
         result = self.lookup([None, [], {"lyrics": "Words\nMore words"}])
         self.assertFalse(result["synced"])
@@ -84,8 +90,9 @@ class LyricsTests(unittest.TestCase):
         self.assertFalse(self.urls)
 
     def test_invalid_and_oversized_metadata(self):
-        self.assertEqual(lyrics.read_track({"title": "a" * 900, "duration": "nan"})["duration"], 0)
-        self.assertEqual(len(lyrics.read_track({"title": "a" * 900})["title"]), 500)
+        self.assertEqual(lyrics.read_track({"duration": "nan"})["duration"], 0)
+        with self.assertRaises(ValueError):
+            lyrics.read_track({"title": "a" * 900})
         with self.assertRaises(ValueError):
             lyrics.read_track([])
 

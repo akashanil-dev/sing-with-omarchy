@@ -56,6 +56,11 @@ Open or close the popup from a shortcut using:
 omarchy-shell akash.sing-with-omarchy toggle
 ```
 
+`show`, `hide`, `refresh`, and `status` are also available. Commands open the
+reader on the focused monitor, falling back to an available widget. `hide`
+closes popups and detached windows on every monitor. `status` reports whether
+any reader is open without including the song metadata.
+
 ## Try the interface without installing
 
 From this checkout, run:
@@ -96,7 +101,15 @@ discarded. Incorrect player metadata can prevent a match.
 Lyrics stay in memory, with up to 20 successful lookups retained during the
 session. No listening history or lyric files are written to disk. Requests
 use HTTPS, reject redirects, cap response sizes, and wait after rate limits.
-There is no analytics or telemetry.
+Track metadata travels to the helper over a private stdin pipe; it is never
+placed in process arguments or environment variables. Other processes running
+as your own user or as root are outside that privacy boundary.
+
+Network responses are limited to 1 MiB before decompression and 2 MiB after
+gzip decompression. Lyric fields, line counts, matching inputs, and helper
+output have separate limits. An independent supervisor caps output at 512 KiB
+before QML collects it and kills a lookup that exceeds 22 seconds. The helper
+also has its own 20-second deadline. There is no analytics or telemetry.
 
 Lyrics belong to their respective rights holders. Provider availability,
 coverage, and timing accuracy vary.
@@ -111,9 +124,12 @@ The checks include Python tests, QML interaction/render tests, a Quickshell
 session test, a subprocess race test, and manifest validation when Omarchy is
 available. Tests use synthetic text and mocked provider responses.
 
-The implementation is split into `Session.qml` (playback and request state),
+The implementation is split into `Session.qml` (playback, reader coordination,
+and request state),
 `Reader.qml` (shared reader), `Widget.qml` (Omarchy host integration),
-`Timeline.js` (cue lookup), and `backend/lyrics.py` (provider client).
+`ServiceLink.qml` (late service discovery), `Timeline.js` (cue lookup),
+`Protocol.js` (message validation), `backend/lyrics.py` (provider client), and
+`backend/worker.py` (private pipes, output limits, and process deadlines).
 
 ## Remove
 
