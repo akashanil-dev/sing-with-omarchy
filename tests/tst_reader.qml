@@ -47,14 +47,14 @@ TestCase {
         var original = fake.lines;
         fake.lines = Array.from({length: 30}, function(_, i) { return {at: i * 5, text: "Lyric number " + i}; });
         fake.activeIndex = 0;
-        wait(450);
+        wait(700);
         var before = list.contentY;
         fake.activeIndex = 15;
         verify(motion.running);
         wait(180);
         verify(list.contentY > before);
         var middle = list.contentY;
-        wait(300);
+        wait(500);
         verify(!motion.running);
         verify(list.contentY > middle);
         fake.following = false;

@@ -35,8 +35,8 @@ Rectangle {
         objectName: "lyricScrollMotion"
         target: verses
         property: "contentY"
-        duration: 420
-        easing.type: Easing.InOutCubic
+        duration: 620
+        easing.type: Easing.OutQuint
     }
 
     Connections {
@@ -153,6 +153,19 @@ Rectangle {
                 clip: true
                 spacing: 10
                 model: reader.session ? reader.session.lines : []
+                currentIndex: reader.session ? reader.session.activeIndex : -1
+                highlightFollowsCurrentItem: false
+                highlight: Rectangle {
+                    objectName: "activeLyricMarker"
+                    width: 3
+                    radius: 1.5
+                    color: reader.theme.accent
+                    visible: verses.currentItem !== null && reader.session && reader.session.synced
+                    y: verses.currentItem ? verses.currentItem.y + 5 : 0
+                    height: verses.currentItem ? verses.currentItem.height - 10 : 0
+                    Behavior on y { NumberAnimation { duration: 560; easing.type: Easing.OutCubic } }
+                    Behavior on height { NumberAnimation { duration: 420; easing.type: Easing.OutCubic } }
+                }
                 boundsBehavior: Flickable.StopAtBounds
                 topMargin: 8
                 bottomMargin: 8
@@ -173,29 +186,25 @@ Rectangle {
                     readonly property bool active: reader.session && reader.session.activeIndex === index
                     width: verses.width - 14
                     height: words.implicitHeight + 10
-                    Rectangle {
-                        opacity: verse.active ? 1 : 0
-                        Behavior on opacity { NumberAnimation { duration: 300 } }
-                        width: 3; radius: 1.5
-                        anchors.left: parent.left
-                        anchors.top: parent.top
-                        anchors.bottom: parent.bottom
-                        color: reader.theme.accent
-                    }
                     Text {
                         id: words
-                        x: 15; width: parent.width - 22
+                        x: verse.active ? 19 : 15
+                        width: parent.width - 26
+                        transformOrigin: Item.Left
+                        scale: verse.active || !reader.session.synced ? 1 : 0.96
+                        Behavior on x { NumberAnimation { duration: 500; easing.type: Easing.OutCubic } }
+                        Behavior on scale { NumberAnimation { duration: 560; easing.type: Easing.OutBack; easing.overshoot: 0.65 } }
                         anchors.verticalCenter: parent.verticalCenter
                         text: verse.modelData.text || "· · ·"
                         textFormat: Text.PlainText
                         wrapMode: Text.Wrap
                         font.family: reader.theme.fontFamily
                         font.pixelSize: reader.session ? reader.session.fontSize : 18
-                        font.weight: Font.Medium
-                        opacity: verse.active || !reader.session.synced ? 1 : 0.72
-                        Behavior on opacity { NumberAnimation { duration: 320 } }
+                        font.weight: Font.DemiBold
+                        opacity: verse.active || !reader.session.synced ? 1 : 0.82
+                        Behavior on opacity { NumberAnimation { duration: 500; easing.type: Easing.OutCubic } }
                         color: verse.active ? reader.theme.accent : !reader.session.synced ? reader.theme.foreground : reader.theme.muted
-                        Behavior on color { ColorAnimation { duration: 320; easing.type: Easing.InOutQuad } }
+                        Behavior on color { ColorAnimation { duration: 500; easing.type: Easing.OutCubic } }
                     }
                     MouseArea {
                         anchors.fill: parent
