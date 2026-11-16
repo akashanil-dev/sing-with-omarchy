@@ -18,6 +18,8 @@ Rectangle {
     implicitWidth: 420
     implicitHeight: 570
 
+    property real markerCenter: -1
+
     function followCue() {
         scrollMotion.stop();
         if (!session || !session.following) return;
@@ -26,6 +28,8 @@ Rectangle {
         if (session.activeIndex >= 0) verses.positionViewAtIndex(session.activeIndex, ListView.Center);
         else verses.positionViewAtBeginning();
         var destination = verses.contentY;
+        // The center stays still until the list reaches its lower scroll boundary.
+        markerCenter = verses.currentItem ? verses.currentItem.y + verses.currentItem.height / 2 - destination : verses.height / 2;
         verses.contentY = previous;
         scrollMotion.to = destination;
         scrollMotion.start();
@@ -44,6 +48,7 @@ Rectangle {
         function onActiveIndexChanged() { reader.followCue(); }
         function onFollowingChanged() { reader.followCue(); }
         function onResultChanged() { Qt.callLater(reader.followCue); }
+        function onFontSizeChanged() { Qt.callLater(reader.followCue); }
     }
     Component.onCompleted: Qt.callLater(followCue)
 
@@ -146,28 +151,33 @@ Rectangle {
             Layout.fillWidth: true
             Layout.fillHeight: true
             Layout.minimumHeight: 100
+            clip: true
+            Rectangle {
+                id: cueMarker
+                objectName: "activeLyricMarker"
+                z: 2
+                width: 3
+                radius: 1.5
+                color: reader.theme.accent
+                visible: verses.currentItem !== null && reader.session && reader.session.synced && reader.session.following
+                property real centerY: reader.markerCenter < 0 ? verses.height / 2 : reader.markerCenter
+                y: centerY - height / 2
+                height: verses.currentItem ? verses.currentItem.height - 10 : 0
+                Behavior on centerY { NumberAnimation { duration: 620; easing.type: Easing.OutQuint } }
+                Behavior on height { NumberAnimation { duration: 420; easing.type: Easing.OutCubic } }
+            }
             ListView {
                 id: verses
                 objectName: "verses"
+                onHeightChanged: Qt.callLater(reader.followCue)
                 anchors.fill: parent
                 clip: true
                 spacing: 10
                 model: reader.session ? reader.session.lines : []
                 currentIndex: reader.session ? reader.session.activeIndex : -1
                 highlightFollowsCurrentItem: false
-                highlight: Rectangle {
-                    objectName: "activeLyricMarker"
-                    width: 3
-                    radius: 1.5
-                    color: reader.theme.accent
-                    visible: verses.currentItem !== null && reader.session && reader.session.synced
-                    y: verses.currentItem ? verses.currentItem.y + 5 : 0
-                    height: verses.currentItem ? verses.currentItem.height - 10 : 0
-                    Behavior on y { NumberAnimation { duration: 560; easing.type: Easing.OutCubic } }
-                    Behavior on height { NumberAnimation { duration: 420; easing.type: Easing.OutCubic } }
-                }
                 boundsBehavior: Flickable.StopAtBounds
-                topMargin: 8
+                topMargin: height / 2
                 bottomMargin: 8
                 onMovementStarted: { scrollMotion.stop(); if (reader.session) reader.session.following = false; }
                 WheelHandler {
