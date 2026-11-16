@@ -41,6 +41,31 @@ TestCase {
         mouseClick(findChild(reader, "detachButton"));
         compare(detachSpy.count, 1);
     }
+    function test_follow_animation() {
+        var list = findChild(reader, "verses");
+        var motion = findChild(reader, "lyricScrollMotion");
+        var original = fake.lines;
+        fake.lines = Array.from({length: 30}, function(_, i) { return {at: i * 5, text: "Lyric number " + i}; });
+        fake.activeIndex = 0;
+        wait(450);
+        var before = list.contentY;
+        fake.activeIndex = 15;
+        verify(motion.running);
+        wait(180);
+        verify(list.contentY > before);
+        var middle = list.contentY;
+        wait(300);
+        verify(!motion.running);
+        verify(list.contentY > middle);
+        fake.following = false;
+        var stopped = list.contentY;
+        fake.activeIndex = 20;
+        wait(100);
+        compare(list.contentY, stopped);
+        fake.lines = original;
+        fake.activeIndex = 2;
+        fake.following = true;
+    }
     function test_render_and_states() {
         wait(250);
         verify(reader.width === 440);

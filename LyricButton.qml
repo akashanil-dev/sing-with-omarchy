@@ -7,8 +7,8 @@ Button {
     property string hint: ""
     property var theme: fallbackTheme
     Theme { id: fallbackTheme }
-    implicitHeight: 34
-    implicitWidth: Math.max(34, label.implicitWidth + 22)
+    implicitHeight: 28
+    implicitWidth: Math.max(28, label.implicitWidth + 16)
     padding: 0
     hoverEnabled: true
     Accessible.name: hint || text

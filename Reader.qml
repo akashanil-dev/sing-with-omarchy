@@ -19,9 +19,24 @@ Rectangle {
     implicitHeight: 570
 
     function followCue() {
+        scrollMotion.stop();
         if (!session || !session.following) return;
+        var previous = verses.contentY;
+        verses.forceLayout();
         if (session.activeIndex >= 0) verses.positionViewAtIndex(session.activeIndex, ListView.Center);
         else verses.positionViewAtBeginning();
+        var destination = verses.contentY;
+        verses.contentY = previous;
+        scrollMotion.to = destination;
+        scrollMotion.start();
+    }
+    NumberAnimation {
+        id: scrollMotion
+        objectName: "lyricScrollMotion"
+        target: verses
+        property: "contentY"
+        duration: 420
+        easing.type: Easing.InOutCubic
     }
 
     Connections {
@@ -34,31 +49,37 @@ Rectangle {
 
     ColumnLayout {
         anchors.fill: parent
-        anchors.margins: 22
-        spacing: 16
+        anchors.margins: 12
+        spacing: 8
         RowLayout {
             Layout.fillWidth: true
             spacing: 10
             Text {
                 text: "♫"
                 font.family: reader.theme.fontFamily
-                font.pixelSize: 26
+                font.pixelSize: 18
                 color: reader.theme.accent
                 Accessible.ignored: true
             }
             Text {
                 Layout.fillWidth: true
-                text: "SING WITH OMARCHY"
+                Layout.preferredHeight: 28
+                verticalAlignment: Text.AlignVCenter
+                text: reader.detached ? "⠿  SING WITH OMARCHY" : "SING WITH OMARCHY"
                 font.family: reader.theme.fontFamily
                 font.pixelSize: reader.theme.captionSize
-                font.letterSpacing: 1.6
+                font.letterSpacing: 0.8
                 font.weight: Font.DemiBold
                 color: reader.theme.muted
                 MouseArea {
                     anchors.fill: parent
+                    id: dragArea
                     enabled: reader.detached
+                    hoverEnabled: true
                     cursorShape: Qt.SizeAllCursor
                     onPressed: reader.moveRequested()
+                    ToolTip.visible: containsMouse
+                    ToolTip.text: "Drag to move · pinned across workspaces"
                 }
             }
             LyricButton {
@@ -66,7 +87,7 @@ Rectangle {
                 objectName: "detachButton"
                 visible: !reader.detached
                 text: "↗"
-                hint: "Open a separate lyrics window"
+                hint: "Float lyrics across workspaces"
                 onClicked: reader.detachRequested()
             }
             LyricButton {
@@ -120,17 +141,19 @@ Rectangle {
             Layout.minimumHeight: 100
             ListView {
                 id: verses
+                objectName: "verses"
                 anchors.fill: parent
                 clip: true
                 spacing: 10
                 model: reader.session ? reader.session.lines : []
                 boundsBehavior: Flickable.StopAtBounds
-                topMargin: 28
-                bottomMargin: 32
-                onMovementStarted: if (reader.session) reader.session.following = false
+                topMargin: 8
+                bottomMargin: 8
+                onMovementStarted: { scrollMotion.stop(); if (reader.session) reader.session.following = false; }
                 WheelHandler {
                     target: null
                     onWheel: event => {
+                        scrollMotion.stop();
                         if (reader.session) reader.session.following = false;
                         event.accepted = false;
                     }
@@ -144,7 +167,8 @@ Rectangle {
                     width: verses.width - 14
                     height: words.implicitHeight + 10
                     Rectangle {
-                        visible: verse.active
+                        opacity: verse.active ? 1 : 0
+                        Behavior on opacity { NumberAnimation { duration: 300 } }
                         width: 3; radius: 1.5
                         anchors.left: parent.left
                         anchors.top: parent.top
@@ -160,9 +184,11 @@ Rectangle {
                         wrapMode: Text.Wrap
                         font.family: reader.theme.fontFamily
                         font.pixelSize: reader.session ? reader.session.fontSize : 18
-                        font.weight: verse.active ? Font.DemiBold : Font.Normal
+                        font.weight: Font.Medium
+                        opacity: verse.active || !reader.session.synced ? 1 : 0.72
+                        Behavior on opacity { NumberAnimation { duration: 320 } }
                         color: verse.active ? reader.theme.accent : !reader.session.synced ? reader.theme.foreground : reader.theme.muted
-                        Behavior on color { ColorAnimation { duration: 180 } }
+                        Behavior on color { ColorAnimation { duration: 320; easing.type: Easing.InOutQuad } }
                     }
                     MouseArea {
                         anchors.fill: parent
@@ -180,7 +206,7 @@ Rectangle {
             Column {
                 anchors.centerIn: parent
                 width: parent.width - 24
-                spacing: 16
+                spacing: 8
                 visible: !reader.session || reader.session.lines.length === 0
                 Text {
                     width: parent.width
