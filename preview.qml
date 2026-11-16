@@ -8,8 +8,9 @@ ShellRoot {
         title: "Sing with Omarchy — preview"
         implicitWidth: 440
         implicitHeight: 650
-        color: "#111115"
+        color: previewReader.theme.background
         Reader {
+            id: previewReader
             anchors.fill: parent
             session: demoSession
             detached: true

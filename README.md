@@ -15,6 +15,7 @@ text size, or scroll back without losing your place in the song.
 - Automatic track detection through MPRIS, with a player picker when needed.
 - Synchronized lyrics from LRCLIB and plain-text fallback from Lyrics.ovh.
 - A compact bar popup and a separate, resizable lyrics window.
+- Live Omarchy theme colors and a bar icon sized like the built-in widgets.
 - Click a timed line to seek when your player supports seeking.
 - Manual scrolling pauses following; **Follow** brings you back.
 - Text sizes from 16–40 px and a per-song timing adjustment of ±10 seconds.

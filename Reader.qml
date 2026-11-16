@@ -7,11 +7,13 @@ import "Timeline.js" as Timeline
 Rectangle {
     id: reader
     required property var session
+    property var theme: fallbackTheme
+    Theme { id: fallbackTheme }
     property bool detached: false
     signal detachRequested()
     signal dismissRequested()
     signal moveRequested()
-    color: "#111115"
+    color: theme.background
     radius: detached ? 0 : 16
     implicitWidth: 420
     implicitHeight: 570
@@ -40,7 +42,7 @@ Rectangle {
             Text {
                 text: "♫"
                 font.pixelSize: 26
-                color: "#eac184"
+                color: reader.theme.accent
                 Accessible.ignored: true
             }
             Text {
@@ -49,7 +51,7 @@ Rectangle {
                 font.pixelSize: 10
                 font.letterSpacing: 1.6
                 font.weight: Font.DemiBold
-                color: "#aaa6a0"
+                color: reader.theme.muted
                 MouseArea {
                     anchors.fill: parent
                     enabled: reader.detached
@@ -58,13 +60,15 @@ Rectangle {
                 }
             }
             LyricButton {
+                theme: reader.theme
                 objectName: "detachButton"
                 visible: !reader.detached
                 text: "↗"
                 hint: "Open a separate lyrics window"
                 onClicked: reader.detachRequested()
             }
-            LyricButton { text: "×"; hint: "Close lyrics"; onClicked: reader.dismissRequested() }
+            LyricButton {
+                theme: reader.theme; text: "×"; hint: "Close lyrics"; onClicked: reader.dismissRequested() }
         }
         ColumnLayout {
             Layout.fillWidth: true
@@ -75,7 +79,7 @@ Rectangle {
                 textFormat: Text.PlainText
                 font.pixelSize: 22
                 font.weight: Font.DemiBold
-                color: "#f1eeea"
+                color: reader.theme.foreground
                 elide: Text.ElideRight
             }
             Text {
@@ -83,7 +87,7 @@ Rectangle {
                 text: reader.session ? reader.session.artist : ""
                 textFormat: Text.PlainText
                 font.pixelSize: 13
-                color: "#a9a6af"
+                color: reader.theme.muted
                 elide: Text.ElideRight
             }
         }
@@ -92,12 +96,18 @@ Rectangle {
             visible: count > 1
             Layout.fillWidth: true
             model: reader.session ? reader.session.players : []
+            palette.base: reader.theme.button
+            palette.button: reader.theme.button
+            palette.text: reader.theme.foreground
+            palette.buttonText: reader.theme.foreground
+            palette.highlight: reader.theme.accent
+            palette.highlightedText: reader.theme.onAccent
             textRole: "identity"
             currentIndex: reader.session ? model.indexOf(reader.session.player) : -1
             Accessible.name: "Music player"
             onActivated: index => reader.session.preferredPlayer = model[index].dbusName
         }
-        Rectangle { Layout.fillWidth: true; implicitHeight: 1; color: "#2c2a30" }
+        Rectangle { Layout.fillWidth: true; implicitHeight: 1; color: reader.theme.border }
         Item {
             Layout.fillWidth: true
             Layout.fillHeight: true
@@ -133,7 +143,7 @@ Rectangle {
                         anchors.left: parent.left
                         anchors.top: parent.top
                         anchors.bottom: parent.bottom
-                        color: "#eac184"
+                        color: reader.theme.accent
                     }
                     Text {
                         id: words
@@ -144,7 +154,7 @@ Rectangle {
                         wrapMode: Text.Wrap
                         font.pixelSize: reader.session ? reader.session.fontSize : 24
                         font.weight: verse.active ? Font.DemiBold : Font.Normal
-                        color: verse.active ? "#f3d3a1" : !reader.session.synced ? "#c9c5cc" : "#85818d"
+                        color: verse.active ? reader.theme.accent : !reader.session.synced ? reader.theme.foreground : reader.theme.muted
                         Behavior on color { ColorAnimation { duration: 180 } }
                     }
                     MouseArea {
@@ -171,7 +181,7 @@ Rectangle {
                     text: reader.session && reader.session.result.state === "loading" ? "Finding the words…" : reader.session && reader.session.result.state === "instrumental" ? "Let the music speak." : reader.session && reader.session.result.state === "idle" ? "Your next song starts here." : "No words just yet."
                     wrapMode: Text.Wrap
                     font.pixelSize: 24
-                    color: "#eac184"
+                    color: reader.theme.accent
                 }
                 Text {
                     width: parent.width
@@ -180,7 +190,7 @@ Rectangle {
                     wrapMode: Text.Wrap
                     textFormat: Text.PlainText
                     font.pixelSize: 13
-                    color: "#aaa6b1"
+                    color: reader.theme.muted
                 }
             }
         }
@@ -189,13 +199,13 @@ Rectangle {
             Text {
                 Layout.fillWidth: true
                 text: reader.session && reader.session.result.state === "ready" ? (reader.session.synced ? "SYNCED" : "PLAIN LYRICS") + "  ·  " + reader.session.result.source : ""
-                color: "#96919b"
+                color: reader.theme.muted
                 font.pixelSize: 10
                 elide: Text.ElideRight
             }
             Text {
                 text: reader.session ? Timeline.clock(reader.session.position) + " / " + Timeline.clock(reader.session.duration) : ""
-                color: "#aaa6b1"
+                color: reader.theme.muted
                 font.pixelSize: 11
             }
         }
@@ -203,23 +213,25 @@ Rectangle {
             Layout.fillWidth: true
             implicitHeight: 3
             radius: 2
-            color: "#302d33"
+            color: reader.theme.border
             Rectangle {
                 height: parent.height
                 radius: 2
                 width: parent.width * (reader.session && reader.session.duration > 0 ? Math.min(1, reader.session.position / reader.session.duration) : 0)
-                color: "#eac184"
+                color: reader.theme.accent
             }
         }
         RowLayout {
             Layout.fillWidth: true
             spacing: 6
             LyricButton {
+                theme: reader.theme
                 text: "A−"; hint: "Smaller lyrics"
                 enabled: reader.session && reader.session.fontSize > 16
                 onClicked: reader.session.fontSize -= 2
             }
             LyricButton {
+                theme: reader.theme
                 objectName: "fontUp"
                 text: "A+"; hint: "Larger lyrics"
                 enabled: reader.session && reader.session.fontSize < 40
@@ -227,6 +239,7 @@ Rectangle {
             }
             Item { Layout.fillWidth: true }
             LyricButton {
+                theme: reader.theme
                 objectName: "followButton"
                 text: reader.session && reader.session.following ? "Following" : "Follow"
                 highlightedAction: reader.session && reader.session.following
@@ -235,6 +248,7 @@ Rectangle {
                 onClicked: { reader.session.following = true; reader.followCue(); }
             }
             LyricButton {
+                theme: reader.theme
                 text: reader.session && reader.session.retrySeconds > 0 ? reader.session.retrySeconds + "s" : "↻"
                 hint: "Look up lyrics again"
                 enabled: reader.session && (reader.session.player || reader.session.demo) && reader.session.result.state !== "loading" && reader.session.retrySeconds === 0
@@ -245,20 +259,22 @@ Rectangle {
             Layout.fillWidth: true
             visible: reader.session && reader.session.synced
             spacing: 8
-            Text { text: "Timing"; color: "#96919b"; font.pixelSize: 11 }
+            Text { text: "Timing"; color: reader.theme.muted; font.pixelSize: 11 }
             Item { Layout.fillWidth: true }
             LyricButton {
+                theme: reader.theme
                 text: "−"; hint: "Show lyrics half a second later"
                 enabled: reader.session && reader.session.offset > -10
                 onClicked: reader.session.offset -= .5
             }
             Text {
                 text: reader.session ? (reader.session.offset > 0 ? "+" : "") + reader.session.offset.toFixed(1) + "s" : "0.0s"
-                color: "#c5c0c9"; font.pixelSize: 12
+                color: reader.theme.foreground; font.pixelSize: 12
                 Layout.minimumWidth: 35
                 horizontalAlignment: Text.AlignHCenter
             }
             LyricButton {
+                theme: reader.theme
                 text: "+"; hint: "Show lyrics half a second sooner"
                 enabled: reader.session && reader.session.offset < 10
                 onClicked: reader.session.offset += .5

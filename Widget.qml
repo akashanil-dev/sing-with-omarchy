@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import qs.Ui as Ui
+import qs.Commons as Commons
 
 Ui.Panel {
     id: widget
@@ -12,8 +13,15 @@ Ui.Panel {
     readonly property string screenName: widget.QsWindow.window && widget.QsWindow.window.screen ? widget.QsWindow.window.screen.name : ""
     readonly property bool readerVisible: opened || detached.visible
     manageIpc: false
-    implicitWidth: 30
-    implicitHeight: 30
+    implicitWidth: barButton.implicitWidth
+    implicitHeight: barButton.implicitHeight
+
+    Theme {
+        id: currentTheme
+        background: Commons.Color.popups.background
+        foreground: Commons.Color.popups.text
+        accent: Commons.Color.accent
+    }
 
     ServiceLink { id: serviceLink; host: widget.shell; fallbackHost: widget.bar ? widget.bar.shell : null }
     onSessionChanged: {
@@ -28,16 +36,18 @@ Ui.Panel {
     }
     function dismissReaders() { widget.close(); detached.visible = false; }
 
-    Text {
-        anchors.centerIn: parent
-        text: "♫"
-        font.pixelSize: 22
-        color: widget.opened ? "#eac184" : widget.barForeground
-    }
-    MouseArea {
+    Ui.BarIconButton {
+        id: barButton
         anchors.fill: parent
-        cursorShape: Qt.PointingHandCursor
-        onClicked: widget.readerVisible ? widget.dismissReaders() : widget.presentReader()
+        bar: widget.bar
+        text: "♫"
+        active: widget.readerVisible
+        activeColor: currentTheme.accent
+        tooltipText: "Sing with Omarchy"
+        onPressed: button => {
+            if (button === Qt.LeftButton)
+                widget.readerVisible ? widget.dismissReaders() : widget.presentReader();
+        }
     }
     Accessible.role: Accessible.Button
     Accessible.name: "Sing with Omarchy"
@@ -54,6 +64,7 @@ Ui.Panel {
         Reader {
             anchors.fill: parent
             session: widget.session
+            theme: currentTheme
             onDismissRequested: widget.close()
             onDetachRequested: {
                 widget.closeForPopoutSwitch();
@@ -68,11 +79,12 @@ Ui.Panel {
         implicitWidth: 480
         implicitHeight: 680
         minimumSize: Qt.size(360, 430)
-        color: "#111115"
+        color: currentTheme.background
         Reader {
             anchors.fill: parent
             detached: true
             session: widget.session
+            theme: currentTheme
             focus: true
             onDismissRequested: detached.visible = false
             onMoveRequested: detached.startSystemMove()
