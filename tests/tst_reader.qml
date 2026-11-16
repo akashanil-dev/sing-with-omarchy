@@ -22,7 +22,7 @@ TestCase {
         property bool synced: true
         property int activeIndex: 2
         property bool following: true
-        property int fontSize: 24
+        property int fontSize: 18
         property int retrySeconds: 0
         property var result: ({state: "ready", source: "Preview"})
         property var lines: [{at: 0, text: "Let the day slow down"}, {at: 7, text: "There is a song in this room"}, {at: 14, text: "Keep the words close"}, {at: 21, text: "And find your own tune"}, {at: 28, text: "A quiet moment, just for you"}]
@@ -33,8 +33,8 @@ TestCase {
     SignalSpy { id: detachSpy; target: reader; signalName: "detachRequested" }
     function test_controls() {
         mouseClick(findChild(reader, "fontUp"));
-        compare(fake.fontSize, 26);
-        fake.fontSize = 24;
+        compare(fake.fontSize, 20);
+        fake.fontSize = 18;
         fake.following = false;
         mouseClick(findChild(reader, "followButton"));
         compare(fake.following, true);

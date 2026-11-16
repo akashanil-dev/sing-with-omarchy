@@ -21,6 +21,17 @@ Ui.Panel {
         background: Commons.Color.popups.background
         foreground: Commons.Color.popups.text
         accent: Commons.Color.accent
+        fontFamily: Commons.Style.font.family
+        bodySize: Commons.Style.font.body
+        captionSize: Commons.Style.font.caption
+        titleSize: Commons.Style.font.heading
+        cornerRadius: Commons.Style.cornerRadius
+        button: Commons.Style.normalFillFor(foreground, accent)
+        hover: Commons.Style.hoverFillFor(foreground, accent)
+        pressed: Commons.Style.pressedFillFor(foreground, accent)
+        selected: Commons.Style.selectedFillFor(foreground, accent)
+        buttonBorder: Commons.Style.normalBorderFor(foreground, accent)
+        buttonBorderWidth: Commons.Style.normalBorderWidth
     }
 
     ServiceLink { id: serviceLink; host: widget.shell; fallbackHost: widget.bar ? widget.bar.shell : null }

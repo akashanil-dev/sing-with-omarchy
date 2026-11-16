@@ -14,7 +14,7 @@ Rectangle {
     signal dismissRequested()
     signal moveRequested()
     color: theme.background
-    radius: detached ? 0 : 16
+    radius: detached ? 0 : theme.cornerRadius
     implicitWidth: 420
     implicitHeight: 570
 
@@ -41,6 +41,7 @@ Rectangle {
             spacing: 10
             Text {
                 text: "♫"
+                font.family: reader.theme.fontFamily
                 font.pixelSize: 26
                 color: reader.theme.accent
                 Accessible.ignored: true
@@ -48,7 +49,8 @@ Rectangle {
             Text {
                 Layout.fillWidth: true
                 text: "SING WITH OMARCHY"
-                font.pixelSize: 10
+                font.family: reader.theme.fontFamily
+                font.pixelSize: reader.theme.captionSize
                 font.letterSpacing: 1.6
                 font.weight: Font.DemiBold
                 color: reader.theme.muted
@@ -77,7 +79,8 @@ Rectangle {
                 Layout.fillWidth: true
                 text: reader.session ? reader.session.songTitle : "Starting…"
                 textFormat: Text.PlainText
-                font.pixelSize: 22
+                font.family: reader.theme.fontFamily
+                font.pixelSize: reader.theme.titleSize
                 font.weight: Font.DemiBold
                 color: reader.theme.foreground
                 elide: Text.ElideRight
@@ -86,7 +89,8 @@ Rectangle {
                 Layout.fillWidth: true
                 text: reader.session ? reader.session.artist : ""
                 textFormat: Text.PlainText
-                font.pixelSize: 13
+                font.family: reader.theme.fontFamily
+                font.pixelSize: reader.theme.bodySize
                 color: reader.theme.muted
                 elide: Text.ElideRight
             }
@@ -102,6 +106,8 @@ Rectangle {
             palette.buttonText: reader.theme.foreground
             palette.highlight: reader.theme.accent
             palette.highlightedText: reader.theme.onAccent
+            font.family: reader.theme.fontFamily
+            font.pixelSize: reader.theme.bodySize
             textRole: "identity"
             currentIndex: reader.session ? model.indexOf(reader.session.player) : -1
             Accessible.name: "Music player"
@@ -116,7 +122,7 @@ Rectangle {
                 id: verses
                 anchors.fill: parent
                 clip: true
-                spacing: 16
+                spacing: 10
                 model: reader.session ? reader.session.lines : []
                 boundsBehavior: Flickable.StopAtBounds
                 topMargin: 28
@@ -136,7 +142,7 @@ Rectangle {
                     required property int index
                     readonly property bool active: reader.session && reader.session.activeIndex === index
                     width: verses.width - 14
-                    height: words.implicitHeight + 16
+                    height: words.implicitHeight + 10
                     Rectangle {
                         visible: verse.active
                         width: 3; radius: 1.5
@@ -152,7 +158,8 @@ Rectangle {
                         text: verse.modelData.text || "· · ·"
                         textFormat: Text.PlainText
                         wrapMode: Text.Wrap
-                        font.pixelSize: reader.session ? reader.session.fontSize : 24
+                        font.family: reader.theme.fontFamily
+                        font.pixelSize: reader.session ? reader.session.fontSize : 18
                         font.weight: verse.active ? Font.DemiBold : Font.Normal
                         color: verse.active ? reader.theme.accent : !reader.session.synced ? reader.theme.foreground : reader.theme.muted
                         Behavior on color { ColorAnimation { duration: 180 } }
@@ -180,6 +187,7 @@ Rectangle {
                     horizontalAlignment: Text.AlignHCenter
                     text: reader.session && reader.session.result.state === "loading" ? "Finding the words…" : reader.session && reader.session.result.state === "instrumental" ? "Let the music speak." : reader.session && reader.session.result.state === "idle" ? "Your next song starts here." : "No words just yet."
                     wrapMode: Text.Wrap
+                    font.family: reader.theme.fontFamily
                     font.pixelSize: 24
                     color: reader.theme.accent
                 }
@@ -189,7 +197,8 @@ Rectangle {
                     horizontalAlignment: Text.AlignHCenter
                     wrapMode: Text.Wrap
                     textFormat: Text.PlainText
-                    font.pixelSize: 13
+                    font.family: reader.theme.fontFamily
+                    font.pixelSize: reader.theme.bodySize
                     color: reader.theme.muted
                 }
             }
@@ -200,13 +209,15 @@ Rectangle {
                 Layout.fillWidth: true
                 text: reader.session && reader.session.result.state === "ready" ? (reader.session.synced ? "SYNCED" : "PLAIN LYRICS") + "  ·  " + reader.session.result.source : ""
                 color: reader.theme.muted
-                font.pixelSize: 10
+                font.family: reader.theme.fontFamily
+                font.pixelSize: reader.theme.captionSize
                 elide: Text.ElideRight
             }
             Text {
                 text: reader.session ? Timeline.clock(reader.session.position) + " / " + Timeline.clock(reader.session.duration) : ""
                 color: reader.theme.muted
-                font.pixelSize: 11
+                font.family: reader.theme.fontFamily
+                font.pixelSize: reader.theme.captionSize
             }
         }
         Rectangle {
@@ -227,7 +238,7 @@ Rectangle {
             LyricButton {
                 theme: reader.theme
                 text: "A−"; hint: "Smaller lyrics"
-                enabled: reader.session && reader.session.fontSize > 16
+                enabled: reader.session && reader.session.fontSize > 14
                 onClicked: reader.session.fontSize -= 2
             }
             LyricButton {
@@ -259,7 +270,7 @@ Rectangle {
             Layout.fillWidth: true
             visible: reader.session && reader.session.synced
             spacing: 8
-            Text { text: "Timing"; color: reader.theme.muted; font.pixelSize: 11 }
+            Text { text: "Timing"; color: reader.theme.muted; font.family: reader.theme.fontFamily; font.pixelSize: reader.theme.captionSize }
             Item { Layout.fillWidth: true }
             LyricButton {
                 theme: reader.theme
@@ -269,7 +280,8 @@ Rectangle {
             }
             Text {
                 text: reader.session ? (reader.session.offset > 0 ? "+" : "") + reader.session.offset.toFixed(1) + "s" : "0.0s"
-                color: reader.theme.foreground; font.pixelSize: 12
+                font.family: reader.theme.fontFamily
+                color: reader.theme.foreground; font.pixelSize: reader.theme.bodySize
                 Layout.minimumWidth: 35
                 horizontalAlignment: Text.AlignHCenter
             }

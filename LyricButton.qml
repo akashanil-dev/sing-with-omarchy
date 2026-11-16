@@ -18,16 +18,17 @@ Button {
         id: label
         text: control.text
         textFormat: Text.PlainText
-        color: !control.enabled ? control.theme.muted : control.highlightedAction ? control.theme.onAccent : control.theme.foreground
-        font.pixelSize: 13
+        color: !control.enabled ? control.theme.muted : control.highlightedAction ? control.theme.accent : control.theme.foreground
+        font.family: control.theme.fontFamily
+        font.pixelSize: control.theme.bodySize
         font.weight: Font.Medium
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter
     }
     background: Rectangle {
-        radius: 10
-        color: control.highlightedAction ? control.theme.accent : control.down ? control.theme.pressed : control.hovered ? control.theme.hover : control.theme.button
-        border.width: control.activeFocus ? 2 : 0
-        border.color: control.theme.accent
+        radius: control.theme.cornerRadius
+        color: control.down ? control.theme.pressed : control.hovered ? control.theme.hover : control.highlightedAction ? control.theme.selected : control.theme.button
+        border.width: control.activeFocus ? 1 : control.highlightedAction ? 0 : control.theme.buttonBorderWidth
+        border.color: control.activeFocus ? control.theme.accent : control.theme.buttonBorder
     }
 }

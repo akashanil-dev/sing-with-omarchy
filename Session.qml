@@ -22,7 +22,7 @@ Item {
     readonly property string trackKey: demo ? "demo" : JSON.stringify(player ? [player.dbusName, player.metadata["mpris:trackid"], player.trackTitle, player.trackArtist, player.trackAlbum, duration] : [])
     property real position: 0
     property real offset: 0
-    property int fontSize: 24
+    property int fontSize: 18
     property bool following: true
     property var result: ({state: "idle", lines: [], synced: false})
     readonly property var lines: result.lines || []
