@@ -93,11 +93,12 @@ Rectangle {
             LyricButton {
                 theme: reader.theme; text: "×"; hint: "Close lyrics"; onClicked: reader.dismissRequested() }
         }
-        ColumnLayout {
+        RowLayout {
             Layout.fillWidth: true
-            spacing: 5
+            spacing: 8
             Text {
-                Layout.fillWidth: true
+                Layout.maximumWidth: reader.width * 0.56
+                Layout.minimumWidth: 0
                 text: reader.session ? reader.session.songTitle : "Starting…"
                 textFormat: Text.PlainText
                 font.family: reader.theme.fontFamily
@@ -107,7 +108,13 @@ Rectangle {
                 elide: Text.ElideRight
             }
             Text {
+                text: "·"
+                color: reader.theme.muted
+                visible: reader.session && reader.session.artist.length > 0
+            }
+            Text {
                 Layout.fillWidth: true
+                Layout.minimumWidth: 0
                 text: reader.session ? reader.session.artist : ""
                 textFormat: Text.PlainText
                 font.family: reader.theme.fontFamily
@@ -229,27 +236,17 @@ Rectangle {
                 }
             }
         }
-        RowLayout {
-            Layout.fillWidth: true
-            Text {
-                Layout.fillWidth: true
-                text: reader.session && reader.session.result.state === "ready" ? (reader.session.synced ? "SYNCED" : "PLAIN LYRICS") + "  ·  " + reader.session.result.source : ""
-                color: reader.theme.muted
-                font.family: reader.theme.fontFamily
-                font.pixelSize: reader.theme.captionSize
-                elide: Text.ElideRight
-            }
-            Text {
-                text: reader.session ? Timeline.clock(reader.session.position) + " / " + Timeline.clock(reader.session.duration) : ""
-                color: reader.theme.muted
-                font.family: reader.theme.fontFamily
-                font.pixelSize: reader.theme.captionSize
-            }
-        }
         Rectangle {
             Layout.fillWidth: true
             implicitHeight: 3
             radius: 2
+            MouseArea {
+                anchors.fill: parent
+                anchors.margins: -4
+                hoverEnabled: true
+                ToolTip.visible: containsMouse
+                ToolTip.text: reader.session ? (reader.session.synced ? "Timestamped lyrics · automatic following" : "Plain lyrics · no automatic following") + "\nSource: " + (reader.session.result.source || "Unavailable") + "\n" + Timeline.clock(reader.session.position) + " / " + Timeline.clock(reader.session.duration) : ""
+            }
             color: reader.theme.border
             Rectangle {
                 height: parent.height
@@ -260,7 +257,7 @@ Rectangle {
         }
         RowLayout {
             Layout.fillWidth: true
-            spacing: 6
+            spacing: 4
             LyricButton {
                 theme: reader.theme
                 text: "A−"; hint: "Smaller lyrics"
@@ -278,10 +275,10 @@ Rectangle {
             LyricButton {
                 theme: reader.theme
                 objectName: "followButton"
-                text: reader.session && reader.session.following ? "Following" : "Follow"
+                text: "◎"
                 highlightedAction: reader.session && reader.session.following
                 enabled: reader.session && reader.session.synced
-                hint: "Follow the current lyric"
+                hint: reader.session && reader.session.following ? "Following the current lyric" : "Resume following the current lyric"
                 onClicked: { reader.session.following = true; reader.followCue(); }
             }
             LyricButton {
@@ -291,17 +288,11 @@ Rectangle {
                 enabled: reader.session && (reader.session.player || reader.session.demo) && reader.session.result.state !== "loading" && reader.session.retrySeconds === 0
                 onClicked: reader.session.refresh()
             }
-        }
-        RowLayout {
-            Layout.fillWidth: true
-            visible: reader.session && reader.session.synced
-            spacing: 8
-            Text { text: "Timing"; color: reader.theme.muted; font.family: reader.theme.fontFamily; font.pixelSize: reader.theme.captionSize }
-            Item { Layout.fillWidth: true }
+            Rectangle { Layout.leftMargin: 4; Layout.rightMargin: 4; implicitWidth: 1; implicitHeight: 18; color: reader.theme.border }
             LyricButton {
                 theme: reader.theme
                 text: "−"; hint: "Show lyrics half a second later"
-                enabled: reader.session && reader.session.offset > -10
+                enabled: reader.session && reader.session.synced && reader.session.offset > -10
                 onClicked: reader.session.offset -= .5
             }
             Text {
@@ -314,7 +305,7 @@ Rectangle {
             LyricButton {
                 theme: reader.theme
                 text: "+"; hint: "Show lyrics half a second sooner"
-                enabled: reader.session && reader.session.offset < 10
+                enabled: reader.session && reader.session.synced && reader.session.offset < 10
                 onClicked: reader.session.offset += .5
             }
         }
