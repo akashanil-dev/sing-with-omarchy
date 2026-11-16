@@ -46,12 +46,13 @@ Item {
     }
     function detachView(view) { views = views.filter(item => item !== view); }
     function hideReaders() { views.slice().forEach(view => view.dismissReaders()); }
-    function showReader(screenName) {
+    function showReader(screenName, floating) {
         var chosen = views.find(view => view.screenName === screenName) || views[0];
         if (!chosen) return false;
         // Close other readers before opening so host popup coordination cannot undo the selection.
         views.filter(view => view !== chosen).forEach(view => view.dismissReaders());
-        chosen.presentReader();
+        if (floating) chosen.presentDetached();
+        else chosen.presentReader();
         return true;
     }
     function focusedScreen() { return Hyprland.focusedMonitor ? Hyprland.focusedMonitor.name : ""; }
@@ -60,6 +61,7 @@ Item {
         target: "akash.sing-with-omarchy"
         function show(): string { return session.showReader(session.focusedScreen()) ? "ok" : "unavailable"; }
         function open(): string { return show(); }
+        function popout(): string { return session.showReader(session.focusedScreen(), true) ? "ok" : "unavailable"; }
         function hide(): string { session.hideReaders(); return "ok"; }
         function close(): string { return hide(); }
         function toggle(): string {

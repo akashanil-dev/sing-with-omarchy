@@ -1,5 +1,6 @@
 import QtQuick
 import Quickshell
+import Quickshell.Io
 import qs.Ui as Ui
 import qs.Commons as Commons
 
@@ -11,7 +12,8 @@ Ui.Panel {
     readonly property var session: serviceLink.service
     property var registeredSession: null
     readonly property string screenName: widget.QsWindow.window && widget.QsWindow.window.screen ? widget.QsWindow.window.screen.name : ""
-    readonly property bool readerVisible: opened || detached.visible
+    property bool detachPending: false
+    readonly property bool readerVisible: opened || detached.visible || detachPending
     manageIpc: false
     implicitWidth: barButton.implicitWidth
     implicitHeight: barButton.implicitHeight
@@ -45,7 +47,33 @@ Ui.Panel {
         if (detached.visible) detached.minimized = false;
         else widget.open();
     }
-    function dismissReaders() { widget.close(); detached.visible = false; }
+    function dismissReaders() { detachPending = false; widget.close(); detached.visible = false; }
+    function presentDetached() {
+        if (detached.visible) { detached.minimized = false; return; }
+        detachPending = true;
+        if (!floatRule.running) floatRule.running = true;
+    }
+    Process {
+        id: floatRule
+        command: ["hyprctl", "eval",
+            'if sing_with_omarchy_popout == nil then '
+            + 'sing_with_omarchy_popout = hl.window_rule({'
+            + 'name="sing-with-omarchy-popout", '
+            + 'match={class="^org[.]quickshell$",title="^Sing with Omarchy$"}, '
+            + 'float=true,pin=true}) '
+            + 'else sing_with_omarchy_popout:set_enabled(true) end']
+        onExited: (exitCode, exitStatus) => {
+            if (!widget.detachPending) return;
+            widget.detachPending = false;
+            if (exitCode !== 0 || exitStatus !== 0) {
+                console.warn("Sing with Omarchy: could not prepare pinned reader");
+                widget.open();
+                return;
+            }
+            widget.closeForPopoutSwitch();
+            detached.visible = true;
+        }
+    }
 
     Ui.BarIconButton {
         id: barButton
@@ -77,10 +105,7 @@ Ui.Panel {
             session: widget.session
             theme: currentTheme
             onDismissRequested: widget.close()
-            onDetachRequested: {
-                widget.closeForPopoutSwitch();
-                detached.visible = true;
-            }
+            onDetachRequested: widget.presentDetached()
         }
     }
     FloatingWindow {

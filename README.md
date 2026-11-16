@@ -22,9 +22,9 @@ text size, or scroll back without losing your place in the song.
 - Clear loading, instrumental, unavailable, and connection-error states.
 - A bounded in-memory cache, stale-response protection, and provider cooldowns.
 
-Plain lyrics are shown without pretending they have timestamps. The window
-manager decides whether the separate window floats or tiles; use your normal
-Omarchy window controls to move or float it.
+Plain lyrics are shown without pretending they have timestamps. The pop-out floats above tiled windows and stays pinned across workspaces.
+Drag its header to move it, or use Omarchy window controls to resize it.
+The plugin prepares a narrowly matched Hyprland Lua rule before opening it.
 
 ## Requirements
 
@@ -57,7 +57,7 @@ Open or close the popup from a shortcut using:
 omarchy-shell akash.sing-with-omarchy toggle
 ```
 
-`show`, `hide`, `refresh`, and `status` are also available. Commands open the
+`show`, `popout`, `hide`, `refresh`, and `status` are also available. Commands open the
 reader on the focused monitor, falling back to an available widget. `hide`
 closes popups and detached windows on every monitor. `status` reports whether
 any reader is open without including the song metadata.
@@ -78,7 +78,7 @@ not change your bar or plugin configuration.
 | Control | Action |
 | --- | --- |
 | Music-note bar button | Open or close the reader |
-| ↗ | Open lyrics in a separate window |
+| ↗ | Open a floating reader pinned across workspaces |
 | A− / A+ | Change lyric text size |
 | Scroll | Read manually and pause following |
 | Follow | Return to the current line |
