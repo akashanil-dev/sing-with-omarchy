@@ -69,6 +69,9 @@ Item {
             return show();
         }
         function status(): string { return JSON.stringify({open: session.panelOpen, views: session.views.length, state: session.result.state, centerLyrics: session.views.some(view => view.centerLyricsEnabled), centerLyricsActive: session.views.some(view => view.centerLyricsActive)}); }
+        function centerStatus(): string {
+            return JSON.stringify(session.views.map(view => view.centerLyricsStatus()));
+        }
         function centerLyrics(enabled: bool): string {
             var view = session.views[0];
             return view && view.setCenterLyrics(enabled) ? "ok" : "unavailable";

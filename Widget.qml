@@ -14,6 +14,11 @@ Ui.Panel {
     readonly property string screenName: widget.QsWindow.window && widget.QsWindow.window.screen ? widget.QsWindow.window.screen.name : ""
     readonly property bool centerLyricsEnabled: !!setting("centerLyrics", false)
     readonly property bool centerLyricsActive: centerLyrics.active
+    function centerLyricsStatus() {
+        return {enabled: centerLyricsEnabled, active: centerLyrics.active,
+            supported: centerLyrics.center !== null && centerLyrics.leftSection !== null && centerLyrics.rightSection !== null,
+            width: centerLyrics.availableWidth, hasLine: centerLyrics.lyric.length > 0};
+    }
     function setCenterLyrics(value) {
         if (!!value === centerLyricsEnabled) return true;
         var entry = Object.assign({}, widget.settings, {id: "akash.sing-with-omarchy", centerLyrics: !!value});
