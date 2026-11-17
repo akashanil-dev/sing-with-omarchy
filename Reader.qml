@@ -10,6 +10,9 @@ Rectangle {
     property var theme: fallbackTheme
     Theme { id: fallbackTheme }
     property bool detached: false
+    property bool centerLyricsAvailable: false
+    property bool centerLyricsEnabled: false
+    signal centerLyricsToggled()
     signal detachRequested()
     signal dismissRequested()
     signal moveRequested()
@@ -86,6 +89,15 @@ Rectangle {
                     ToolTip.visible: containsMouse
                     ToolTip.text: "Drag to move · pinned across workspaces"
                 }
+            }
+            LyricButton {
+                theme: reader.theme
+                objectName: "centerLyricsButton"
+                visible: reader.centerLyricsAvailable
+                text: "≡"
+                highlightedAction: reader.centerLyricsEnabled
+                hint: reader.centerLyricsEnabled ? "Turn off lyrics in center bar" : "Turn on lyrics in center bar"
+                onClicked: reader.centerLyricsToggled()
             }
             LyricButton {
                 theme: reader.theme

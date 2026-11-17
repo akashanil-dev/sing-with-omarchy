@@ -12,6 +12,24 @@ Ui.Panel {
     readonly property var session: serviceLink.service
     property var registeredSession: null
     readonly property string screenName: widget.QsWindow.window && widget.QsWindow.window.screen ? widget.QsWindow.window.screen.name : ""
+    readonly property bool centerLyricsEnabled: !!setting("centerLyrics", false)
+    readonly property bool centerLyricsActive: centerLyrics.active
+    function setCenterLyrics(value) {
+        if (!!value === centerLyricsEnabled) return true;
+        var entry = Object.assign({}, widget.settings, {id: "akash.sing-with-omarchy", centerLyrics: !!value});
+        var api = widget.shell || (widget.bar ? widget.bar.shell : null);
+        if (!api || !api.updateEntryInline("akash.sing-with-omarchy", entry)) return false;
+        widget.settings = entry;
+        return true;
+    }
+    CenterLyrics {
+        id: centerLyrics
+        surface: widget.QsWindow.window ? widget.QsWindow.window.contentItem : null
+        requested: widget.centerLyricsEnabled && widget.bar !== null && !widget.bar.vertical
+        lyric: widget.session && (widget.session.demo || (widget.session.player && widget.session.player.isPlaying)) && widget.session.synced && widget.session.activeIndex >= 0 ? widget.session.lines[widget.session.activeIndex].text : ""
+        theme: currentTheme
+        onClicked: widget.presentReader()
+    }
     property bool detachPending: false
     readonly property bool readerVisible: opened || detached.visible || detachPending
     manageIpc: false
@@ -104,6 +122,9 @@ Ui.Panel {
             anchors.fill: parent
             session: widget.session
             theme: currentTheme
+            centerLyricsAvailable: true
+            centerLyricsEnabled: widget.centerLyricsEnabled
+            onCenterLyricsToggled: widget.setCenterLyrics(!widget.centerLyricsEnabled)
             onDismissRequested: widget.close()
             onDetachRequested: widget.presentDetached()
         }
@@ -121,6 +142,9 @@ Ui.Panel {
             detached: true
             session: widget.session
             theme: currentTheme
+            centerLyricsAvailable: true
+            centerLyricsEnabled: widget.centerLyricsEnabled
+            onCenterLyricsToggled: widget.setCenterLyrics(!widget.centerLyricsEnabled)
             focus: true
             onDismissRequested: detached.visible = false
             onMoveRequested: detached.startSystemMove()

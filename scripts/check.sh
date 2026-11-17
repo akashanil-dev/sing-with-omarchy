@@ -15,7 +15,7 @@ export QT_QPA_PLATFORM=offscreen QT_QPA_PLATFORMTHEME=generic
 export QT_QUICK_CONTROLS_STYLE=Basic QT_QUICK_BACKEND=software
 unset DISPLAY WAYLAND_DISPLAY
 
-"$qt_bin/qmllint" Theme.qml LyricButton.qml Reader.qml Session.qml ServiceLink.qml preview.qml
+"$qt_bin/qmllint" BarLyric.qml CenterLyrics.qml Theme.qml LyricButton.qml Reader.qml Session.qml ServiceLink.qml preview.qml
 "$qt_bin/qmltestrunner" -input tests
 for test_file in session-check.qml worker-check.qml; do
     log="$scratch/${test_file}.log"

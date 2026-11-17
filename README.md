@@ -146,3 +146,27 @@ Runs on [Omarchy](https://omarchy.org/), [Quickshell](https://quickshell.org/),
 Qt, and Python. Those projects retain their own licenses. Lyrics are supplied
 by [LRCLIB](https://lrclib.net/) and [Lyrics.ovh](https://lyrics.ovh/); they are
 not covered by this repository's code license.
+
+## Lyrics in the center of the bar
+
+Use the **≡** button in the reader header to toggle **Lyrics in center bar**.
+The preference is saved in this plugin's own bar entry. You can also use:
+
+```bash
+omarchy-shell akash.sing-with-omarchy centerLyrics true
+omarchy-shell akash.sing-with-omarchy centerLyrics false
+```
+
+While timestamped lyrics are playing, lines slide upward and fade into the
+screen's center. Long lines pan horizontally instead of being ellipsized.
+Click the lyric to open the reader. Normal center widgets return when paused,
+when timestamped lyrics are unavailable, or when this mode is switched off.
+Their order, settings, and running services remain unchanged.
+
+The overlay leaves symmetric clearance for the left and right widgets. If less
+than 100 logical pixels remain, or the bar is vertical, it leaves the normal
+center intact. This integration detects the stock Omarchy bar's visual sections
+because the scoped plugin API has no center-visibility operation. It has been
+validated on 4.0.6; an unfamiliar future layout disables the overlay safely.
+Check it again after a system upgrade. `status` reports `centerLyrics` (enabled)
+and `centerLyricsActive` (currently showing lyrics).

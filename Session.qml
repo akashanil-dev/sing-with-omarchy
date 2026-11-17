@@ -68,7 +68,11 @@ Item {
             if (session.panelOpen) { session.hideReaders(); return "ok"; }
             return show();
         }
-        function status(): string { return JSON.stringify({open: session.panelOpen, views: session.views.length, state: session.result.state}); }
+        function status(): string { return JSON.stringify({open: session.panelOpen, views: session.views.length, state: session.result.state, centerLyrics: session.views.some(view => view.centerLyricsEnabled), centerLyricsActive: session.views.some(view => view.centerLyricsActive)}); }
+        function centerLyrics(enabled: bool): string {
+            var view = session.views[0];
+            return view && view.setCenterLyrics(enabled) ? "ok" : "unavailable";
+        }
         function refresh(): string { session.refresh(); return "ok"; }
     }
 
